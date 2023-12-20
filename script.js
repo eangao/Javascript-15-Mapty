@@ -10,3 +10,8 @@ const inputDistance = document.querySelector('.form__input--distance');
 const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
+
+////////////////////////////////////////////////////////////
+// How to Plan a Web Project
+////////////////////////////////////////////////////////////
+//SEE PDF LECTURE OR VIDEOS
