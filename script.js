@@ -63,6 +63,8 @@ class Workout {
   // on the time to create ID's is gonna be a really bad idea.
   id = (Date.now() + '').slice(-10);
 
+  clicks = 0;
+
   constructor(coords, distance, duration) {
     this.coords = coords; // [lat, lng]
     this.distance = distance; // in km
@@ -83,6 +85,10 @@ class Workout {
     this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${
       months[this.date.getMonth()]
     } ${this.date.getDate()}`;
+  }
+
+  click() {
+    this.clicks++;
   }
 }
 
@@ -122,9 +128,9 @@ class Cycling extends Workout {
   }
 }
 
-// const run1 = new Running([39, -12], 5.2, 24, 178);
-// const cycling1 = new Cycling([39, -12], 27, 95, 523);
-// console.log(run1, cycling1);
+const run1 = new Running([39, -12], 5.2, 24, 178);
+const cycling1 = new Cycling([39, -12], 27, 95, 523);
+console.log(run1, cycling1);
 
 ///////////////////////////////////////////////////////////
 //APPLICATION  ARCHITECTURE
@@ -138,6 +144,7 @@ const inputElevation = document.querySelector('.form__input--elevation');
 
 class App {
   #map;
+  #mapZoomLevel = 13;
   #mapEvent;
   #workouts = [];
 
@@ -214,6 +221,8 @@ class App {
       // because as I just said, it doesn't really matter.
       this._toggleElevationField
     );
+
+    containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
   }
 
   _getPosition() {
@@ -281,7 +290,7 @@ class App {
 
     //https://leafletjs.com/index.html
     //map is the id in the html
-    this.#map = L.map('map').setView(coords, 13);
+    this.#map = L.map('map').setView(coords, this.#mapZoomLevel);
     // console.log(map);
 
     L.tileLayer('https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
@@ -510,6 +519,28 @@ class App {
        `;
 
     form.insertAdjacentHTML('afterend', html);
+  }
+
+  _moveToPopup(e) {
+    const workoutEl = e.target.closest('.workout');
+    console.log(workoutEl);
+
+    if (!workoutEl) return;
+
+    const workout = this.#workouts.find(
+      work => work.id === workoutEl.dataset.id
+    );
+
+    console.log(workout);
+
+    //see docs of https://leafletjs.com
+    this.#map.setView(workout.coords, this.#mapZoomLevel, {
+      animate: true,
+      pan: { duration: 1 },
+    });
+
+    // using the public interface
+    workout.click();
   }
 }
 
