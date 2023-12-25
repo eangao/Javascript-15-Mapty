@@ -11,6 +11,114 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 
+class Workout {
+  date = new Date();
+
+  //   So instead any object should have some kind
+  // of unique identifier
+  // so that we can then later identify it using that ID.
+  // So let's create a field for ID here as well
+  // and always keep in mind that what we're doing here
+  // so here and actually also here is using
+  // a very modern specification of JavaScript
+  // which is not even yet part
+  // of the official JavaScript language.
+  // Remember how I talked about that in the last section.
+  // And so if we want to make sure that this is gonna work
+  // at least with ES6 then we would have to do,
+  // this dot date and then define that here
+  // and the same here this dot ID
+  // and then define that here as well. Right?
+  // However, here I'm simply using cutting edge JavaScript
+  // and so something that's probably gonna become part
+  // of JavaScript pretty soon.
+
+  // And so I think that it's perfectly fine to use
+  // these class fields here already.
+  // but now back to the ID and in the real world,
+  // we usually always use some kind of library
+
+  // in order to create good and unique ID numbers.
+  // So usually we should never create IDs on our own
+  // but always let some library take care of that because
+  // this is a very important part of any application.
+  // However right now I'm not gonna include
+  // any library like that
+  // and I will simply use the current date to create a new ID
+  // so a new date, and then I will convert that
+  // to a string and then simply take the last 10 numbers.
+  // And so that should then be unique enough.All right.
+  // So converting to a string
+  // and then I can say slice then the last 10 numbers basically.
+  // id = (new Date() + '').slice(-10);
+
+  //   the current time stamp of right now.
+  // And so that will now hopefully fix it.
+  // And to see that here we have this ID
+  // and then here we also have the ID
+  // but right now they are actually exactly the same.
+  // And so basically that happened because
+  // they were created at the same time.
+  // But then later in the real world
+  // as we used our application of course
+  // it's gonna be impossible to create two new objects
+  // at the same time.
+  // And so then that's gonna work just fine.
+  // However as I said previously,
+  // when you are really working on the real world
+  // then probably you have many users using
+  // the same application, right?
+  // And then of course some users can create objects
+  // at the same time
+  // and so by then relying
+  // on the time to create ID's is gonna be a really bad idea.
+  id = (Date.now() + '').slice(-10);
+
+  constructor(coords, distance, duration) {
+    this.coords = coords; // [lat, lng]
+    this.distance = distance; // in km
+    this.duration = duration; // in min
+  }
+}
+
+class Running extends Workout {
+  constructor(coords, distance, duration, cadence) {
+    super(coords, distance, duration);
+    this.cadence = cadence;
+
+    this.calcPace();
+  }
+
+  calcPace() {
+    //pace -> min/km
+    //adding new property
+    this.pace = this.duration / this.distance;
+
+    return this.pace;
+  }
+}
+
+class Cycling extends Workout {
+  constructor(coords, distance, duration, elevationGain) {
+    super(coords, distance, duration);
+    this.elevationGain = elevationGain;
+
+    this.calcSpeed();
+  }
+
+  calcSpeed() {
+    //speed -> km/h
+    this.speed = this.distance / (this.duration / 60);
+    return this.speed;
+  }
+}
+
+// const run1 = new Running([39, -12], 5.2, 24, 178);
+// const cycling1 = new Cycling([39, -12], 27, 95, 523);
+// console.log(run1, cycling1);
+
+///////////////////////////////////////////////////////////
+//APPLICATION  ARCHITECTURE
 class App {
   #map;
   #mapEvent;
