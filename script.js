@@ -128,9 +128,9 @@ class Cycling extends Workout {
   }
 }
 
-const run1 = new Running([39, -12], 5.2, 24, 178);
-const cycling1 = new Cycling([39, -12], 27, 95, 523);
-console.log(run1, cycling1);
+// const run1 = new Running([39, -12], 5.2, 24, 178);
+// const cycling1 = new Cycling([39, -12], 27, 95, 523);
+// console.log(run1, cycling1);
 
 ///////////////////////////////////////////////////////////
 //APPLICATION  ARCHITECTURE
@@ -149,8 +149,13 @@ class App {
   #workouts = [];
 
   constructor() {
+    // Get user's position
     this._getPosition();
 
+    // Get data from local storage
+    this._getLocalStorage();
+
+    //Attach event handlers
     form.addEventListener(
       'submit',
 
@@ -286,7 +291,7 @@ class App {
 
     const coords = [latitude, longitude];
 
-    console.log(this);
+    // console.log(this);
 
     //https://leafletjs.com/index.html
     //map is the id in the html
@@ -329,6 +334,14 @@ class App {
       // And of course that's where we have the mapEvent property,
       this._showForm.bind(this)
     );
+
+    // render workouts from local storage.
+    // it place here after the map is loaded
+    // because it will not work if directly place in _getLocalStorage
+    // becuase the method set the marker with out the map was loaded successfullly
+    this.#workouts.forEach(work => {
+      this._renderWorkoutMarker(work);
+    });
   }
 
   _showForm(mapE) {
@@ -438,7 +451,7 @@ class App {
 
     // Add  new object to workout array
     this.#workouts.push(workout);
-    console.log(this.#workouts);
+    // console.log(this.#workouts);
 
     // Render workout on map as marker
     this._renderWorkoutMarker(workout);
@@ -448,6 +461,9 @@ class App {
 
     // Hide form + Clear input fields
     this._hideForm();
+
+    // Set local storage to all workouts
+    this._setLocalStorage();
   }
 
   _renderWorkoutMarker(workout) {
@@ -523,7 +539,7 @@ class App {
 
   _moveToPopup(e) {
     const workoutEl = e.target.closest('.workout');
-    console.log(workoutEl);
+    // console.log(workoutEl);
 
     if (!workoutEl) return;
 
@@ -531,7 +547,7 @@ class App {
       work => work.id === workoutEl.dataset.id
     );
 
-    console.log(workout);
+    // console.log(workout);
 
     //see docs of https://leafletjs.com
     this.#map.setView(workout.coords, this.#mapZoomLevel, {
@@ -540,7 +556,126 @@ class App {
     });
 
     // using the public interface
-    workout.click();
+    // workout.click();
+  }
+
+  _setLocalStorage() {
+    //     Now, I just want to mention that local storage
+    // is a very simple API.
+    // And so it is only advised to use
+    // for small amounts of data, all right.
+    // That's because local storage is blocking,
+    localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+  }
+
+  _getLocalStorage() {
+    const data = JSON.parse(localStorage.getItem('workouts'));
+    // console.log(data);
+
+    if (!data) return;
+
+    this.#workouts = data;
+
+    this.#workouts.forEach(work => {
+      this._renderWorkout(work);
+    });
+
+    //     I just want to show you one problem that we have now.
+    // And that has to do with local storage.
+    // So, remember that when I click here
+    // on one of these workouts,
+    // it will move the map to the workout,
+    // and so that's gonna be fine,
+    // but what also happens is that this clicks property
+    // is gonna be increased by using the click method
+    // that is inherited from the workout class.
+    // But watch what happens now as I try to do that.
+    // And so we get workout.click is not a function.
+    // So, why do you think that is?
+    // Well, let's try to take a look at the objects
+    // that we get back from local storage.
+    // So that's this one here.
+    // And I know that right now
+    // we have a ton of console.logs here,
+    // so we should get rid of them at some point,
+    // but anyway, for now let's take a look
+    // at the objects that we basically have right now.
+    // And so this is currently also the data
+    // that is in this .workouts, right?
+    // Now, if we take a look at this,
+    // then here everything works okay.
+    // But now if we take a look at the prototype chain,
+    // you see that now it's no longer an object
+    // of the type of running,
+    // and also not of the type of workout, right.
+    // So the entire prototype chain that we had before is gone.
+    // So contrast that to one of these objects.
+    // So again, the data is fine,
+    // but here, we actually have the prototype with calcPace,
+    // and then that has the click entities,
+    // that description methods in the workout prototype, right.
+    // So, the problem here is that basically,
+    // when we converted our objects to a string,
+    // and then back from the string to objects,
+    // we lost the prototype chain.
+    // And so these new objects here
+    // that we recovered from the local storage
+    // are now just regular objects.
+    // They are now no longer objects
+    // that were created by the running
+    // or by the cycling class.
+    // And so therefore,
+    // they will not be able to inherit
+    // any of their methods.
+    // And so in the end,
+    // that's the reason why workout.click
+    // is now not a function anymore.
+    // So, again, because the object now no longer has it
+    // in its prototype.
+    // So you see that this is just the regular methods
+    // that are available on any object, all right.
+    // So this can be a big problem
+    // when you work with local storage
+    // and object oriented programming
+    // like we are doing here.
+
+    // Now to fix this problem, we could go ahead
+    // and restore the object right here.
+    // So, in our getLocalStorage,
+    // we could now loop over this data here,
+    // and then restore the objects
+    // by creating a new object using the class,
+    // based on the data that is coming here from local storage.
+
+    // But that's a little bit of work
+    // and so we're not gonna do that here.
+    // And so instead what I will do
+    // is to simply disable the functionality
+    // of counting the clicks.
+
+    // from _moveToPopup(e) function
+    // using the public interface
+    // workout.click();
+
+    // So remember that when I first introduced this method here,
+    // I told you that one of the reasons for it
+    // is that I also wanted to show you something
+  }
+
+  reset() {
+    localStorage.removeItem('workouts');
+
+    //     And with this we removed our workouts
+    // from the local storage,
+    // and now we can then reload the page programmatically.
+    // And so then the application will look completely empty.
+    // And we can do this with location.reload.
+    // And location is basically a big object
+    // that contains a lot of methods
+    // and properties in the browser.
+    // And so one of the methods
+    // is the ability to reload the page.
+    location.reload();
   }
 }
 
